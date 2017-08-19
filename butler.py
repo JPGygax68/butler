@@ -4,38 +4,21 @@ import os
 import sys
 import pathlib as pl
 import subprocess as sub
+from lib.indented_text_parser import IndentedTextParser
 
 
-print("Butler V0.00")
+def extract_requirements(info):
+    parser = IndentedTextParser()
+    for _ in parser.parse_string(info):
+        print(":", _)
+        if _[0] == 0 and _[1][:-1] == ['PROJECT', 'Requires:']:
+            yield _[1][-1]
+
+print("Butler V0.0")
 
 have_conanfile   = pl.Path('conanfile.txt').is_file()
 have_conanrecipe = pl.Path('conanfile.py' ).is_file()
 
-def extract_requirements(info):
-    """Extracts the list of dependencies from the output of "conan info ." (supplied as a string)."""
-    reqs = []
-    # TODO: the following traversal algorithm could be generalized
-    branch = []
-    last_indent = -1
-    for line in [_.rstrip() for _ in info.split("\n")]:
-        print(">", line)
-        data = line.lstrip()
-        indent = len(line) - len(data)
-        if indent > last_indent:
-            branch.append((data, indent))
-            last_indent = indent
-        elif indent == last_indent:
-            branch[-1] = (data, indent)
-        elif indent < last_indent:
-            while True:
-                branch.pop()
-                if indent >= branch[-1][1]: 
-                    last_indent = indent
-                    break
-        parent = [_[0] for _ in branch[:-1]]
-        if parent == ["PROJECT", "Requires:"]:
-            yield data
-    
 def display_conan_info():
     cp = sub.run("conan info .", stdout=sub.PIPE, stderr=sub.PIPE)
     if cp.returncode == 0:
