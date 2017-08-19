@@ -10,7 +10,7 @@ from lib.indented_text_parser import IndentedTextParser
 def extract_requirements(info):
     parser = IndentedTextParser()
     for _ in parser.parse_string(info):
-        print(":", _)
+        #print(":", _)
         if _[0] == 0 and _[1][:-1] == ['PROJECT', 'Requires:']:
             yield _[1][-1]
 
