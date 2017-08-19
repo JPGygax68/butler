@@ -1,4 +1,4 @@
-#!python3
+#!python
 
 import os
 import sys
@@ -47,12 +47,18 @@ def display_conan_info():
         print(cp.stdout.decode(), cp.stderr.decode())
 
 
-if have_conanfile and have_conanrecipe:
-    print("CAUTION! This directory has both a conanfile and a conan recipe, aborting for safety")
-    sys.exit()
-if have_conanfile:
-    print("Conanfile found, querying info...")
-    display_conan_info()
-elif have_conanrecipe:
-    print("Conan recipe found, querying info...")
-    display_conan_info()
+# The main routine
+
+def main():
+    if have_conanfile and have_conanrecipe:
+        print("CAUTION! This directory has both a conanfile and a conan recipe, aborting for safety")
+        sys.exit()
+    if have_conanfile:
+        print("Conanfile found, querying info...")
+        display_conan_info()
+    elif have_conanrecipe:
+        print("Conan recipe found, querying info...")
+        display_conan_info()
+
+if __name__ == "__main__":
+    main()
