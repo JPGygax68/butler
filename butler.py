@@ -75,9 +75,14 @@ def display_git_info():
 def main():
     print("Butler V0.0")
 
-    ap = argparse.ArgumentParser()
-    ap.add_argument("info", help="Display general info about the current directory")
-    ap.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-v', '--verbosity')
+    subparsers = parser.add_subparsers(dest='subcommand')
+    
+    parser_info = subparsers.add_parser('info', help="Display general info about the current working directory")
+
+    ns = parser.parse_args()
+    print("subcommand: %s" % ns.subcommand)
 
     have_conanfile   = pl.Path('conanfile.txt').is_file()
     have_conanrecipe = pl.Path('conanfile.py' ).is_file()
