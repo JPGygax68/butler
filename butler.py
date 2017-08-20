@@ -6,6 +6,10 @@ import pathlib as pl
 import subprocess as sub
 from lib.indented_text_parser import IndentedTextParser
 from git import Repo
+import argparse
+
+
+# TODO: normalize modules to return information as nested dictionaries ?
 
 
 def extract_requirements(info):
@@ -14,11 +18,6 @@ def extract_requirements(info):
         #print(":", _)
         if _[0] == 0 and _[1][:-1] == ['PROJECT', 'Requires:']:
             yield _[1][-1]
-
-print("Butler V0.0")
-
-have_conanfile   = pl.Path('conanfile.txt').is_file()
-have_conanrecipe = pl.Path('conanfile.py' ).is_file()
 
 def display_conan_info():
     cp = sub.run("conan info .", stdout=sub.PIPE, stderr=sub.PIPE)
@@ -74,6 +73,15 @@ def display_git_info():
 # The main routine
 
 def main():
+    print("Butler V0.0")
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("info", help="Display general info about the current directory")
+    ap.parse_args()
+
+    have_conanfile   = pl.Path('conanfile.txt').is_file()
+    have_conanrecipe = pl.Path('conanfile.py' ).is_file()
+
     if have_conanfile and have_conanrecipe:
         print("CAUTION! This directory has both a conanfile and a conan recipe, aborting for safety")
         sys.exit()
