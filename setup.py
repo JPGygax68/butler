@@ -8,9 +8,11 @@ setup( name='butler',
     author='Jean-Pierre Gygax',
     author_email='gygax@practicomp.ch',
     scripts=['butler.py'],
+    packages=['lib'],
     entry_points= {
         'console_scripts': [
             'butler = butler.py:main'
             ]
-        }
+        },
+    install_requires= ['GitPython']
     )
