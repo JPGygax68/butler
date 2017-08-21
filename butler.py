@@ -5,7 +5,7 @@ import sys
 import pathlib as pl
 import subprocess as sub
 from lib.indented_text_parser import IndentedTextParser
-from git import Repo
+import git
 import argparse
 
 
@@ -35,7 +35,7 @@ def display_git_info():
         print("This directory is not a (non-bare) git repository")
     else:
         print("Directory is a git repository, obtaining info...")
-        repo = Repo('.')
+        repo = git.Repo('.')
         print("Active branch: %s" % repo.active_branch)
         if repo.is_dirty(): print("Repository is dirty!")
         if not repo.untracked_files:
@@ -70,6 +70,17 @@ def display_git_info():
                     print("  %s: %s" % (path, stage))
     
     
+# Command: remove submodule
+
+def remove_submodule(args):
+    repo = git.Repo('.')
+    matches = [_ for _ in repo.submodules if _._name == args.submodule]
+    if not matches: raise Exception('Submodule %s does not exist' % args.submodule)
+    sm = matches.next()
+    sm.remove()
+    print('Submodule %s successfully removed')
+        
+    
 # The main routine
 
 def main():
@@ -79,24 +90,32 @@ def main():
     parser.add_argument('-v', '--verbosity')
     subparsers = parser.add_subparsers(dest='subcommand')
     
-    parser_info = subparsers.add_parser('info', help="Display general info about the current working directory")
+    p_info   = subparsers.add_parser('info', help="Display general info about the current working directory")
+    p_remsub = subparsers.add_parser('remove-submodule')
+    p_remsub.add_argument('submodule')
 
     ns = parser.parse_args()
-    print("subcommand: %s" % ns.subcommand)
+    #print("subcommand: %s" % ns.subcommand)
+    
+    try:
+        if ns.subcommand == 'remove-submodule':
+            remove_submodule(ns)
+        elif ns.subcommand == 'info':
+            have_conanfile   = pl.Path('conanfile.txt').is_file()
+            have_conanrecipe = pl.Path('conanfile.py' ).is_file()
 
-    have_conanfile   = pl.Path('conanfile.txt').is_file()
-    have_conanrecipe = pl.Path('conanfile.py' ).is_file()
-
-    if have_conanfile and have_conanrecipe:
-        print("CAUTION! This directory has both a conanfile and a conan recipe, aborting for safety")
-        sys.exit()
-    if have_conanfile:
-        print("Conanfile found, querying info...")
-        display_conan_info()
-    elif have_conanrecipe:
-        print("Conan recipe found, querying info...")
-        display_conan_info()
-    display_git_info()
+            if have_conanfile and have_conanrecipe:
+                print("CAUTION! This directory has both a conanfile and a conan recipe, aborting for safety")
+                sys.exit()
+            if have_conanfile:
+                print("Conanfile found, querying info...")
+                display_conan_info()
+            elif have_conanrecipe:
+                print("Conan recipe found, querying info...")
+                display_conan_info()
+            display_git_info()
+    except Exception as e:
+        print("Command failed: %s" % e)
 
 if __name__ == "__main__":
     main()
