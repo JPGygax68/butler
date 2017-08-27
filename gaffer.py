@@ -20,18 +20,15 @@ def main():
     parser.add_argument('-v', '--verbosity')
     subparsers = parser.add_subparsers(dest='subcommand')
     
-    # TODO: do this automatically for all subcommands in the subcommands dir
-    InfoCommand           .define_subparser(subparsers)
-    RemoveSubmoduleCommand.define_subparser(subparsers)
+    for sc in subcommands: sc.define_subparser(subparsers)
     
     ns = parser.parse_args()
     #print("subcommand: %s" % ns.subcommand)
     
     try:
-        if ns.subcommand == 'remove-submodule':
-            RemoveSubmoduleCommand.execute(ns)
-        elif ns.subcommand == 'info':
-            InfoCommand.execute()
+        for sc in subcommands:
+            if ns.subcommand == sc.subcommand:
+                sc.execute(ns)
     except Exception as e:
         print("Command failed: %s" % e)
 

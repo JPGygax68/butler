@@ -29,13 +29,12 @@ def display_conan_info():
         
 class InfoCommand:
 
-    sp = None
-        
-
+    subcommand = 'info'
+    
     def define_subparser(subparsers):
-        sp = subparsers.add_parser('info', help="Display general info about the current working directory")
+        subparsers.add_parser('info', help="Display general info about the current working directory")
         
-    def execute():        
+    def execute(args):       
         have_conanfile   = pl.Path('conanfile.txt').is_file()
         have_conanrecipe = pl.Path('conanfile.py' ).is_file()
 
