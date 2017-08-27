@@ -3,15 +3,15 @@
 from distutils.core import setup
 
 
-setup( name='butler', 
+setup( name='gaffer', 
     version='0.0.11', 
     author='Jean-Pierre Gygax',
     author_email='gygax@practicomp.ch',
-    scripts=['butler.py'],
+    scripts=['gaffer.py'],
     packages=['lib'],
     entry_points= {
         'console_scripts': [
-            'butler = butler.py:main'
+            'gaffer = gaffer.py:main'
             ]
         },
     install_requires= ['GitPython']
