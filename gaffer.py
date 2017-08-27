@@ -1,8 +1,5 @@
 #!python
 
-import os
-import sys
-import pathlib as pl
 from lib.grips import *
 from lib.subcommands import *
 import argparse
@@ -27,10 +24,11 @@ def main():
     
     try:
         for sc in subcommands:
-            if ns.subcommand == sc.subcommand:
+            if ns.subcommand == sc.name:
                 sc.execute(ns)
     except Exception as e:
         print("Command failed: %s" % e)
+
 
 if __name__ == "__main__":
     main()

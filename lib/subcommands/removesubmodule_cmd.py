@@ -6,11 +6,11 @@ import git
 
 class RemoveSubmoduleCommand:
 
-    subcommand = 'remove-submodule'
+    name = 'remove-submodule'
         
     def define_subparser(subparsers):
     
-        sp = subparsers.add_parser('remove-submodule', help='Remove a Git submodule')
+        sp = subparsers.add_parser(RemoveSubmoduleCommand.name, help='Remove a Git submodule')
         sp.add_argument('submodule')
 
     def execute(args):

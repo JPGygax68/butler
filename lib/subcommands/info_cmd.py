@@ -29,10 +29,10 @@ def display_conan_info():
         
 class InfoCommand:
 
-    subcommand = 'info'
+    name = 'info'
     
     def define_subparser(subparsers):
-        subparsers.add_parser('info', help="Display general info about the current working directory")
+        subparsers.add_parser(InfoCommand.name, help="Display general info about the current working directory")
         
     def execute(args):       
         have_conanfile   = pl.Path('conanfile.txt').is_file()
