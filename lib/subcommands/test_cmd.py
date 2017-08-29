@@ -12,6 +12,7 @@ class TestCommand:
         
     def execute(args):
         s = Scaffold('CMakeLists.txt')
+        s.scan_content()
 
 
     
