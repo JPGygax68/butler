@@ -10,40 +10,41 @@ import re
 
 
 class Node:
-    def __init__(self, byte_count = 0, line_count = 0):
+    def __init__(self, _byte_count = 0, _line_count = 0):
         self.type = type
-        self.byte_count = byte_count
-        self.line_count = line_count
+        self._byte_count = _byte_count
+        self._line_count = _line_count
         self.children = []
+        self._sealed = False
         
     def append(self, bytes, lines):
         assert not (bytes == 0 and lines != 0)
         if self.children:
-            assert self.children[-1].is_sealed()
-            self.children.append( Node() )
+            if self.children[-1].is_sealed():
+                self.children.append( Node() )
             self.children[-1].append(bytes, lines)
         else:
-            self.byte_count += bytes
-            self.line_count += lines
+            self._byte_count += bytes
+            self._line_count += lines
         
     def create_new_branch(self):
-        print(">create_new_branch()")
+        #print(">create_new_branch()")
         # No branches yet (was a leaf) ?
         if not self.children:
-            child = Node(self.byte_count, self.line_count)
-            self.byte_count = self.line_count = 0
+            child = Node(self._byte_count, self._line_count)
+            self._byte_count = self._line_count = 0
             self.children = [child]
         else:
             if not self.children[-1].is_sealed():
                 self.children[-1].seal()
-            child = Node()
-            self.children.append(child)
+        child = Node()
+        self.children.append(child)
         return child
         
     def seal(self):
-        print(">seal()")
+        #print(">seal()")
         if self.children:
-            if self.children[-1].byte_count == 0:
+            if self.children[-1]._byte_count == 0:
                 self.children.pop()
         self._sealed = True
     
@@ -51,11 +52,14 @@ class Node:
         return self._sealed
         
     def depth(self):
-        print(">depth(), children:", self.children)
+        #print(">depth(), children:", self.children)
         return 1 + (0 if not self.children else max([_.depth() for _ in self.children]))
 
-    def size(self):
-        return self.byte_count if not self.children else sum([_.size() for _ in self.children])
+    def byte_size(self):
+        return self._byte_count if not self.children else sum([_.byte_size() for _ in self.children])
+
+    def line_count(self):
+        return self._line_count if not self.children else sum([_.line_count() for _ in self.children])
         
         
 class Scaffold:
@@ -69,17 +73,19 @@ class Scaffold:
         for line_buf in stream:
             line = line_buf.decode(encoding).rstrip()
             if line[:2] == '#$': # TODO: support other comment introducers
+                # Element openers and closers become part of the *containing* node (for now)
                 if line[2] == ':':
                     curr_branch[-1].append(len(line_buf), 1)
                     child = curr_branch[-1].create_new_branch()
                     curr_branch.append(child)
                 elif line[2] == '/':
                     curr_branch[-1].seal()
+                    curr_branch.pop()
                     curr_branch[-1].append(len(line_buf), 1)
             else:
                 curr_branch[-1].append(len(line_buf), 1)
         #else:
-        #    print('EOF, total size:', byte_offs)
+        #    print('EOF, total byte_size:', byte_offs)
                 
         sc.root_node = curr_branch[0]
         sc.root_node.seal()
