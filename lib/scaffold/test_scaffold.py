@@ -4,8 +4,6 @@ import pkg_resources
 from . import Scaffold
 
 
-#print("Testing the Scaffold class ... NOT YET!")
-
 class TestScaffoldClass(unittest.TestCase):
     
     def test_scan_stream(self):
@@ -21,9 +19,13 @@ class TestScaffoldClass(unittest.TestCase):
         
         root_node = scaffold.root_node
         self.assertTrue(root_node.depth() == 2)
+        
         print('Root node byte size  :', root_node.byte_size ())
         print('Root node line count :', root_node.line_count())
         print('Root node child count:', len(root_node.children))
         self.assertEqual(root_node.byte_size (), file_size)
         self.assertEqual(root_node.line_count(), line_count)
         self.assertEqual(len(root_node.children), 3)
+        
+        count = len([_ for _ in root_node.yield_tagged_children()])
+        self.assertEqual(count, 1)

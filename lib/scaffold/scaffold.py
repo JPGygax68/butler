@@ -10,8 +10,8 @@ import re
 
 
 class Node:
-    def __init__(self, _byte_count = 0, _line_count = 0):
-        self.type = type
+    def __init__(self, tag = None, _byte_count = 0, _line_count = 0):
+        self._tag = tag
         self._byte_count = _byte_count
         self._line_count = _line_count
         self.children = []
@@ -27,17 +27,17 @@ class Node:
             self._byte_count += bytes
             self._line_count += lines
         
-    def create_new_branch(self):
+    def create_new_branch(self, tag = None):
         #print(">create_new_branch()")
         # No branches yet (was a leaf) ?
         if not self.children:
-            child = Node(self._byte_count, self._line_count)
+            child = Node(None, self._byte_count, self._line_count)
             self._byte_count = self._line_count = 0
             self.children = [child]
         else:
             if not self.children[-1].is_sealed():
                 self.children[-1].seal()
-        child = Node()
+        child = Node(tag)
         self.children.append(child)
         return child
         
@@ -48,6 +48,9 @@ class Node:
                 self.children.pop()
         self._sealed = True
     
+    def is_tagged(self):
+        return not self._tag is None
+        
     def is_sealed(self):
         return self._sealed
         
@@ -61,9 +64,17 @@ class Node:
     def line_count(self):
         return self._line_count if not self.children else sum([_.line_count() for _ in self.children])
         
+    def yield_tagged_children(self):
+        for node in self.children:
+            if node.is_tagged():
+                yield node
+        
         
 class Scaffold:
 
+    # TODO: support indented tag lines
+    # TODO: warn if indentation of opener and closer differ
+    
     def from_byte_stream(stream, encoding='utf-8'):
     
         sc = Scaffold()
@@ -76,7 +87,7 @@ class Scaffold:
                 # Element openers and closers become part of the *containing* node (for now)
                 if line[2] == ':':
                     curr_branch[-1].append(len(line_buf), 1)
-                    child = curr_branch[-1].create_new_branch()
+                    child = curr_branch[-1].create_new_branch(line[3:].strip())
                     curr_branch.append(child)
                 elif line[2] == '/':
                     curr_branch[-1].seal()
