@@ -1,14 +1,6 @@
 import re
 
 
-#_splitter = re.compile(r'^\s*#\$\:\s*(\w+)\s*(?:\:(.*))?$((?:\n.*$)*)\n^\s*#\$/\s*(\1)(?:.*)$', re.MULTILINE)
-#        
-#def _scan_string(s):
-#    for m in _splitter.finditer(s):
-#        print('--------------------------------')
-#        print(m.group(3))
-
-
 class Node:
     def __init__(self, tag = None, content = b'', line_count = 0):
         self._tag = tag
@@ -17,12 +9,12 @@ class Node:
         self.children = []
         self._sealed = False
         
-    def append(self, content, line_count):
+    def append_content(self, content, line_count):
         assert not (len(content) == 0) and line_count != 0
         if self.children:
             if self.children[-1].is_sealed():
                 self.children.append( Node() )
-            self.children[-1].append(content, line_count)
+            self.children[-1].append_content(content, line_count)
         else:
             self._content += content
             self._line_count += line_count
@@ -93,7 +85,9 @@ class Scaffold:
         
         curr_branch = [Node()]
         indents = []
+        warnings = []
         
+        line_num = 1
         for line_buf in stream:
             line = line_buf.decode(encoding).rstrip()
             indent = len(line) - len(line.lstrip())
@@ -102,22 +96,25 @@ class Scaffold:
                 # Element openers and closers become part of the *containing* node (for now)
                 if line[2] == ':':
                     indents.append(indent)
-                    curr_branch[-1].append(line_buf, 1)
+                    curr_branch[-1].append_content(line_buf, 1)
                     child = curr_branch[-1].create_new_branch(line[3:].strip())
                     curr_branch.append(child)
                 elif line[2] == '/':
                     curr_branch[-1].seal()
                     curr_branch.pop()
                     if indent != indents[-1]:
-                        raise Exception('opening/closing tag indent mismatch (opening: %d, closing %d)' % (indents[-1], indent))
+                        #raise Exception('opening/closing tag indent mismatch (opening: %d, closing %d)' % (indents[-1], indent))
+                        msg = 'opening/closing tag indent mismatch (opening: %d, closing %d)' % (indents[-1], indent)
+                        warnings.append(((line_num, indent), msg))
                     indents.pop()
-                    curr_branch[-1].append(line_buf, 1)
+                    curr_branch[-1].append_content(line_buf, 1)
             else:
-                curr_branch[-1].append(line_buf, 1)
+                curr_branch[-1].append_content(line_buf, 1)
+            line_num += 1
         #else:
         #    print('EOF, total byte_size:', byte_offs)
                 
         sc.root_node = curr_branch[0]
         sc.root_node.seal()
         
-        return sc
+        return sc, warnings
