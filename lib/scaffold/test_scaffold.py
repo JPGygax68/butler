@@ -9,7 +9,9 @@ class TestScaffoldClass(unittest.TestCase):
     def test_scan_stream(self):
     
         file_size  = len(pkg_resources.resource_string(__name__, 'testdata/CMakeLists.txt'))
-        line_count = len([_ for _ in pkg_resources.resource_stream(__name__, 'testdata/CMakeLists.txt')])
+        rs = pkg_resources.resource_stream(__name__, 'testdata/CMakeLists.txt')
+        line_count = len([_ for _ in rs])
+        rs.close()
         print("File size in bytes:", file_size)
         print("File line count   :", line_count)
         
@@ -27,5 +29,6 @@ class TestScaffoldClass(unittest.TestCase):
         self.assertEqual(root_node.line_count(), line_count)
         self.assertEqual(len(root_node.children), 3)
         
-        count = len([_ for _ in root_node.yield_tagged_children()])
-        self.assertEqual(count, 1)
+        tagged_nodes = [_ for _ in root_node.yield_tagged_children()]
+        self.assertEqual(len(tagged_nodes), 1)
+        self.assertEqual(tagged_nodes[0].tag(), 'main-target')

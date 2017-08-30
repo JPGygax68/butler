@@ -51,6 +51,9 @@ class Node:
     def is_tagged(self):
         return not self._tag is None
         
+    def tag(self):
+        return self._tag
+        
     def is_sealed(self):
         return self._sealed
         
