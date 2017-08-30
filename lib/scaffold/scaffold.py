@@ -10,29 +10,31 @@ import re
 
 
 class Node:
-    def __init__(self, tag = None, _byte_count = 0, _line_count = 0):
+    def __init__(self, tag = None, content = b'', line_count = 0):
         self._tag = tag
-        self._byte_count = _byte_count
-        self._line_count = _line_count
+        self._content = content
+        self._line_count = line_count
         self.children = []
         self._sealed = False
         
-    def append(self, bytes, lines):
-        assert not (bytes == 0 and lines != 0)
+    def append(self, content, line_count):
+        assert not (len(content) == 0) and line_count != 0
         if self.children:
             if self.children[-1].is_sealed():
                 self.children.append( Node() )
-            self.children[-1].append(bytes, lines)
+            self.children[-1].append(content, line_count)
         else:
-            self._byte_count += bytes
-            self._line_count += lines
+            self._content += content
+            self._line_count += line_count
         
     def create_new_branch(self, tag = None):
         #print(">create_new_branch()")
         # No branches yet (was a leaf) ?
         if not self.children:
-            child = Node(None, self._byte_count, self._line_count)
-            self._byte_count = self._line_count = 0
+            # Transfer content so far to new untagged child
+            child = Node(None, self._content, self._line_count)
+            self._content = None
+            self._line_count = 0
             self.children = [child]
         else:
             if not self.children[-1].is_sealed():
@@ -44,7 +46,8 @@ class Node:
     def seal(self):
         #print(">seal()")
         if self.children:
-            if self.children[-1]._byte_count == 0:
+            last = self.children[-1]
+            if last._content is None or len(last._content) == 0:
                 self.children.pop()
         self._sealed = True
     
@@ -62,10 +65,16 @@ class Node:
         return 1 + (0 if not self.children else max([_.depth() for _ in self.children]))
 
     def byte_size(self):
-        return self._byte_count if not self.children else sum([_.byte_size() for _ in self.children])
+        return len(self._content) if not self.children else sum([_.byte_size() for _ in self.children])
 
     def line_count(self):
         return self._line_count if not self.children else sum([_.line_count() for _ in self.children])
+        
+    def content(self):
+        if self.children:
+            return b''.join([_.content() for _ in self.children])
+        else:
+            return self._content
         
     def yield_tagged_children(self):
         for node in self.children:
@@ -83,21 +92,28 @@ class Scaffold:
         sc = Scaffold()
         
         curr_branch = [Node()]
+        indents = []
         
         for line_buf in stream:
             line = line_buf.decode(encoding).rstrip()
+            indent = len(line) - len(line.lstrip())
+            line = line.strip()
             if line[:2] == '#$': # TODO: support other comment introducers
                 # Element openers and closers become part of the *containing* node (for now)
                 if line[2] == ':':
-                    curr_branch[-1].append(len(line_buf), 1)
+                    indents.append(indent)
+                    curr_branch[-1].append(line_buf, 1)
                     child = curr_branch[-1].create_new_branch(line[3:].strip())
                     curr_branch.append(child)
                 elif line[2] == '/':
                     curr_branch[-1].seal()
                     curr_branch.pop()
-                    curr_branch[-1].append(len(line_buf), 1)
+                    if indent != indents[-1]:
+                        raise Exception('opening/closing tag indent mismatch (opening: %d, closing %d)' % (indents[-1], indent))
+                    indents.pop()
+                    curr_branch[-1].append(line_buf, 1)
             else:
-                curr_branch[-1].append(len(line_buf), 1)
+                curr_branch[-1].append(line_buf, 1)
         #else:
         #    print('EOF, total byte_size:', byte_offs)
                 

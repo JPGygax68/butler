@@ -6,13 +6,16 @@ cmake_minimum_required(VERSION 3.9)
 # Voilà un petit projet à moi
 project(DumDum)
 
-#$: main-target
+option(BUILD_EXECUTABLE "Build the executable for this project")
 
-add_executable(${PROJECT_NAME} 
-  src/dummy.cpp
-)
+if (BUILD_EXECUTABLE):
 
-#$/ main-target
+  #$: main-target
 
+  add_executable(${PROJECT_NAME} 
+    src/dummy.cpp
+  )
 
+  #$/ main-target
 
+endif()
