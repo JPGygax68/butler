@@ -26,7 +26,7 @@ class TestScaffoldClass(unittest.TestCase):
         #print('Root node byte size  :', root_node.byte_size ())
         #print('Root node line count :', root_node.line_count())
         #print('Root node child count:', len(root_node.children))
-        self.assertEqual(root_node.byte_size (), file_size)
+        self.assertEqual(root_node.byte_size (), file_size, 'root_node.byte_size() equal to file size')
         self.assertEqual(root_node.line_count(), line_count)
         self.assertEqual(len(root_node.children), 3)
         
