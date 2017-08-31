@@ -8,15 +8,15 @@ class TestScaffoldClass(unittest.TestCase):
     
     def test_basic_parsing(self):
     
-        bytes = pkg_resources.resource_string(__name__, 'testdata/cmake1.txt')
+        bytes = pkg_resources.resource_string(__name__, 'testdata/cmake1.cmake')
         file_size  = len(bytes)
-        rs = pkg_resources.resource_stream(__name__, 'testdata/cmake1.txt')
+        rs = pkg_resources.resource_stream(__name__, 'testdata/cmake1.cmake')
         line_count = len([_ for _ in rs])
         rs.close()
         #print("File size in bytes:", file_size)
         #print("File line count   :", line_count)
         
-        rs = pkg_resources.resource_stream(__name__, 'testdata/cmake1.txt')
+        rs = pkg_resources.resource_stream(__name__, 'testdata/cmake1.cmake')
         scaffold, warnings = Scaffold.from_byte_stream(rs)
         rs.close()
         
@@ -39,7 +39,7 @@ class TestScaffoldClass(unittest.TestCase):
         
     def test_warnings(self):
 
-        rs = pkg_resources.resource_stream(__name__, 'testdata/cmake2.txt')
+        rs = pkg_resources.resource_stream(__name__, 'testdata/cmake2.cmake')
         scaffold, warnings = Scaffold.from_byte_stream(rs)
         rs.close()
         
@@ -50,4 +50,25 @@ class TestScaffoldClass(unittest.TestCase):
         self.assertEqual(line_num, 19)
         self.assertEqual(col_num, 4)
         self.assertIn('indent mismatch', message)
+     
+    def test_finding_nodes_by_type(self):
+
+        rs = pkg_resources.resource_stream(__name__, 'testdata/cmake1.cmake')
+        scaffold, warnings = Scaffold.from_byte_stream(rs)
+        rs.close()
+        
+        main_target = scaffold.find_nodes_by_type('main-target')[0]
+        
+        self.assertIn('add_executable', main_target.content().decode('utf-8'))
+        
+        
+    #def test_appending(self):
+    #    
+    #    rs = pkg_resources.resource_stream(__name__, 'testdata/cmake2.txt')
+    #    scaffold, warnings = Scaffold.from_byte_stream(rs)
+    #    rs.close()
+    #    
+    #    # ...
+    #    
+    #    ref = pkg_resources.resource_string(__name__, 'testdata/cmake3.txt')
         

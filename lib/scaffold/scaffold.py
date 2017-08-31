@@ -73,7 +73,26 @@ class Node:
             if node.is_tagged():
                 yield node
         
+    def gather_nodes_by_type(self, node_type):
+        if self.node_type() == node_type:
+            return [self]
+        elif self.children:
+            list = []
+            for child in self.children:
+                list += child.gather_nodes_by_type(node_type)
+            return list
+        else:
+            return []
+
+    def node_type(self):
+        if self._tag:
+            #print("tag:", self._tag)
+            xp = re.compile(r'^[^\d\W][-\w]*', re.UNICODE)
+            m = xp.match(self._tag)
+            #print("m:", m)
+            if m: return m.string
         
+
 class Scaffold:
 
     # TODO: support indented tag lines
@@ -94,12 +113,13 @@ class Scaffold:
             line = line.strip()
             if line[:2] == '#$': # TODO: support other comment introducers
                 # Element openers and closers become part of the *containing* node (for now)
-                if line[2] == ':':
+                if line[2] == '[':
                     indents.append(indent)
                     curr_branch[-1].append_content(line_buf, 1)
-                    child = curr_branch[-1].create_new_branch(line[3:].strip())
+                    tag = line[3:].strip()
+                    child = curr_branch[-1].create_new_branch(tag)
                     curr_branch.append(child)
-                elif line[2] == '/':
+                elif line[2] == ']': # ignoring the rest of the line (for now)
                     curr_branch[-1].seal()
                     curr_branch.pop()
                     if indent != indents[-1]:
@@ -118,3 +138,7 @@ class Scaffold:
         sc.root_node.seal()
         
         return sc, warnings
+
+    def find_nodes_by_type(self, type):
+        
+        return self.root_node.gather_nodes_by_type(type)

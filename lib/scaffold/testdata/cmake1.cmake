@@ -10,12 +10,12 @@ option(BUILD_EXECUTABLE "Build the executable for this project")
 
 if (BUILD_EXECUTABLE):
 
-  #$: main-target
+  #$[main-target
 
   add_executable(${PROJECT_NAME} 
     src/dummy.cpp
   )
 
-    #$/ main-target
+  #$]
 
 endif()
