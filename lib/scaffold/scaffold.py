@@ -8,6 +8,13 @@ class Node:
         self._line_count = line_count
         self.children = []
         self._sealed = False
+        if tag:
+            # TODO: also parse attributes
+            xp = re.compile(r'^[^\d\W][-\w]*', re.UNICODE)
+            m = xp.match(self._tag)
+            if m: self._type = m.string
+        else:
+            self._type = None
         
     def append_content(self, content, line_count):
         assert not (len(content) == 0) and line_count != 0
@@ -85,12 +92,7 @@ class Node:
             return []
 
     def node_type(self):
-        if self._tag:
-            #print("tag:", self._tag)
-            xp = re.compile(r'^[^\d\W][-\w]*', re.UNICODE)
-            m = xp.match(self._tag)
-            #print("m:", m)
-            if m: return m.string
+        return self._type
         
 
 class Scaffold:
